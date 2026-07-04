@@ -64,6 +64,29 @@ Connecting...
 
 </button>
 
+<h2>Last Feed</h2>
+
+<table style="margin:auto;font-size:20px;">
+
+<tr>
+<td>Type :</td>
+<td id="feedType">--</td>
+</tr>
+
+<tr>
+<td>Time :</td>
+<td id="feedTime">--</td>
+</tr>
+
+<tr>
+<td>Date :</td>
+<td id="feedDate">--</td>
+</tr>
+
+</table>
+
+<br><br>
+
 <script>
 
 const client = mqtt.connect(
@@ -75,10 +98,13 @@ password:'Vijay@66166'
 
 client.on('connect',()=>{
 
-document.getElementById("status").innerHTML=
+document.getElementById("status").innerHTML =
 "🟢 Connected";
 
+client.subscribe("fishfeeder/feedstatus");
+
 });
+
 
 client.on('error',(err)=>{
 
@@ -86,6 +112,19 @@ document.getElementById("status").innerHTML=
 "🔴 Connection Failed";
 
 console.log(err);
+
+});
+
+client.on("message",(topic,message)=>{
+
+    if(topic=="fishfeeder/feedstatus")
+    {
+        let data = JSON.parse(message.toString());
+
+        document.getElementById("feedType").innerHTML = data.feed;
+        document.getElementById("feedTime").innerHTML = data.time;
+        document.getElementById("feedDate").innerHTML = data.date;
+    }
 
 });
 
