@@ -106,6 +106,24 @@ Connecting...
 
 </table>
 
+<h2>Device Status</h2>
+
+<table style="margin:auto;font-size:20px">
+
+<tr>
+<td>WiFi :</td>
+<td id="wifi">--</td>
+</tr>
+
+<tr>
+<td>IP :</td>
+<td id="ip">--</td>
+</tr>
+
+</table>
+
+<br>
+
 <br><br>
 
 <script>
@@ -120,10 +138,9 @@ password:'Vijay@66166'
 client.on('connect',()=>{
 
 document.getElementById("status").innerHTML =
-"🟢 Connected";
+"Connecting to ESP32...";
 
-client.subscribe("fishfeeder/feedstatus");
-client.subscribe("fishfeeder/status");
+client.subscribe("fishfeeder/state");
 
 });
 
@@ -139,27 +156,42 @@ console.log(err);
 
 client.on("message",(topic,message)=>{
 
-    if(topic=="fishfeeder/feedstatus")
-    {
-        let data = JSON.parse(message.toString());
-
-        document.getElementById("feedType").innerHTML = data.feed;
-        document.getElementById("feedTime").innerHTML = data.time;
-        document.getElementById("feedDate").innerHTML = data.date;
-    }
-	
-	if(topic=="fishfeeder/status")
+if(topic=="fishfeeder/state")
 {
-    let data = JSON.parse(message.toString());
 
-    document.getElementById("morning").innerHTML =
-        data.morningDone ? "✅ Done" : "⏳ Pending";
+let data = JSON.parse(message.toString());
 
-    document.getElementById("evening").innerHTML =
-        data.eveningDone ? "✅ Done" : "⏳ Pending";
+document.getElementById("status").innerHTML =
+data.online
+?
+"🟢 ESP32 Online (" + data.wifi + ")"
+:
+"🔴 ESP32 Offline";
 
-    document.getElementById("nextFeed").innerHTML =
-        data.nextFeed;
+document.getElementById("wifi").innerHTML =
+data.wifi;
+
+document.getElementById("ip").innerHTML =
+data.ip;
+
+document.getElementById("feedType").innerHTML =
+data.lastFeed.type;
+
+document.getElementById("feedTime").innerHTML =
+data.lastFeed.time;
+
+document.getElementById("feedDate").innerHTML =
+data.lastFeed.date;
+
+document.getElementById("morning").innerHTML =
+data.morningDone ? "✅ Done":"⏳ Pending";
+
+document.getElementById("evening").innerHTML =
+data.eveningDone ? "✅ Done":"⏳ Pending";
+
+document.getElementById("nextFeed").innerHTML =
+data.nextFeed;
+
 }
 
 });
