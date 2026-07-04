@@ -1,14 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fish Feeder</title>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Smart Fish Feeder</title>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<style>
+
+body{
+    font-family:Arial;
+    background:#202124;
+    color:white;
+    text-align:center;
+    margin-top:60px;
+}
+
+button{
+    width:220px;
+    height:70px;
+    font-size:24px;
+    border:none;
+    border-radius:12px;
+    background:#00b894;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#009f7a;
+}
+
+#status{
+
+margin-top:20px;
+font-size:22px;
+font-weight:bold;
+
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h1>🐠 Smart Fish Feeder By Vijay Kumar</h1>
+<h1>🐠 Smart Fish Feeder</h1>
 
-<h2>Website Working!</h2>
+<div id="status">
+
+Connecting...
+
+</div>
+
+<br><br>
+
+<button onclick="feedNow()">
+
+🍤 FEED NOW
+
+</button>
+
+<script>
+
+const client = mqtt.connect(
+'wss://8a1f06daa0544608991e3db3f3b71acc.s1.eu.hivemq.cloud:8884/mqtt',
+{
+username:'fishfeeder',
+password:'Vijay@66166'
+});
+
+client.on('connect',()=>{
+
+document.getElementById("status").innerHTML=
+"🟢 Connected";
+
+});
+
+client.on('error',(err)=>{
+
+document.getElementById("status").innerHTML=
+"🔴 Connection Failed";
+
+console.log(err);
+
+});
+
+function feedNow()
+{
+
+client.publish(
+'fishfeeder/cmd/feed',
+'FEED'
+);
+
+alert("Feed Command Sent");
+
+}
+
+</script>
 
 </body>
 </html>
