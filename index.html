@@ -127,102 +127,115 @@ Connecting...
 <br><br>
 
 <script>
+
 let lastHeartbeat = 0;
 
 const client = mqtt.connect(
 'wss://8a1f06daa0544608991e3db3f3b71acc.s1.eu.hivemq.cloud:8884/mqtt',
 {
-username:'fishfeeder',
-password:'Vijay@66166'
+    username:'fishfeeder',
+    password:'Vijay@66166',
+    reconnectPeriod:5000,
+    keepalive:30
 });
 
 client.on('connect',()=>{
 
-document.getElementById("status").innerHTML =
-"Connecting to ESP32...";
+    console.log("Connected to MQTT");
 
-client.subscribe("fishfeeder/state");
+    document.getElementById("status").innerHTML =
+    "🟡 Waiting for ESP32...";
+
+    client.subscribe("fishfeeder/state");
+	client.subscribe("fishfeeder/availability");
 
 });
 
+client.on('close',()=>{
+
+    document.getElementById("status").innerHTML =
+    "🔴 MQTT Disconnected";
+
+});
+
+client.on('offline',()=>{
+
+    document.getElementById("status").innerHTML =
+    "🔴 MQTT Offline";
+
+});
 
 client.on('error',(err)=>{
 
-document.getElementById("status").innerHTML=
-"🔴 Connection Failed";
-
-console.log(err);
+    console.log(err);
 
 });
 
 client.on("message",(topic,message)=>{
 
-if(topic=="fishfeeder/state")
+if(topic=="fishfeeder/availability")
 {
+    const state = message.toString();
 
-let data = JSON.parse(message.toString());
-lastHeartbeat = Date.now();
+    if(state==="online")
+    {
+        document.getElementById("status").innerHTML =
+        "🟢 ESP32 Online";
+    }
+    else
+    {
+        document.getElementById("status").innerHTML =
+        "🔴 ESP32 Offline";
+    }
 
-document.getElementById("status").innerHTML =
-data.online
-?
-"🟢 ESP32 Online (" + data.wifi + ")"
-:
-"🔴 ESP32 Offline";
-
-document.getElementById("wifi").innerHTML =
-data.wifi;
-
-document.getElementById("ip").innerHTML =
-data.ip;
-
-document.getElementById("feedType").innerHTML =
-data.lastFeed.type;
-
-document.getElementById("feedTime").innerHTML =
-data.lastFeed.time;
-
-document.getElementById("feedDate").innerHTML =
-data.lastFeed.date;
-
-document.getElementById("morning").innerHTML =
-data.morningDone ? "✅ Done":"⏳ Pending";
-
-document.getElementById("evening").innerHTML =
-data.eveningDone ? "✅ Done":"⏳ Pending";
-
-document.getElementById("nextFeed").innerHTML =
-data.nextFeed;
-
+    return;
 }
+
+    if(topic!="fishfeeder/state")
+        return;
+
+    lastHeartbeat = Date.now();
+
+    let data = JSON.parse(message.toString());
+
+    document.getElementById("status").innerHTML =
+    "🟢 ESP32 Online";
+
+    document.getElementById("wifi").innerHTML =
+    data.wifi;
+
+    document.getElementById("ip").innerHTML =
+    data.ip;
+
+    document.getElementById("feedType").innerHTML =
+    data.lastFeed.type;
+
+    document.getElementById("feedTime").innerHTML =
+    data.lastFeed.time;
+
+    document.getElementById("feedDate").innerHTML =
+    data.lastFeed.date;
+
+    document.getElementById("morning").innerHTML =
+    data.morningDone ? "✅ Done":"⏳ Pending";
+
+    document.getElementById("evening").innerHTML =
+    data.eveningDone ? "✅ Done":"⏳ Pending";
+
+    document.getElementById("nextFeed").innerHTML =
+    data.nextFeed;
 
 });
 
 function feedNow()
 {
-
-client.publish(
-'fishfeeder/cmd/feed',
-'FEED'
-);
-
-alert("Feed Command Sent");
-
+    client.publish(
+        "fishfeeder/cmd/feed",
+        "FEED"
+    );
 }
 
-setInterval(function()
-{
-    if(lastHeartbeat == 0)
-    {
-        document.getElementById("status").innerHTML =
-        "🟡 Waiting for ESP32...";
-    }
-    else if(Date.now() - lastHeartbeat > 45000)
-    {
-        document.getElementById("status").innerHTML =
-        "🔴 ESP32 Offline";
-    }
-},1000);
+
 
 </script>
 
