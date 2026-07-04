@@ -85,6 +85,27 @@ Connecting...
 
 </table>
 
+<h2>Today's Schedule</h2>
+
+<table style="margin:auto;font-size:20px">
+
+<tr>
+<td>Morning :</td>
+<td id="morning">--</td>
+</tr>
+
+<tr>
+<td>Evening :</td>
+<td id="evening">--</td>
+</tr>
+
+<tr>
+<td>Next Feed :</td>
+<td id="nextFeed">--</td>
+</tr>
+
+</table>
+
 <br><br>
 
 <script>
@@ -102,6 +123,7 @@ document.getElementById("status").innerHTML =
 "🟢 Connected";
 
 client.subscribe("fishfeeder/feedstatus");
+client.subscribe("fishfeeder/status");
 
 });
 
@@ -125,6 +147,20 @@ client.on("message",(topic,message)=>{
         document.getElementById("feedTime").innerHTML = data.time;
         document.getElementById("feedDate").innerHTML = data.date;
     }
+	
+	if(topic=="fishfeeder/status")
+{
+    let data = JSON.parse(message.toString());
+
+    document.getElementById("morning").innerHTML =
+        data.morningDone ? "✅ Done" : "⏳ Pending";
+
+    document.getElementById("evening").innerHTML =
+        data.eveningDone ? "✅ Done" : "⏳ Pending";
+
+    document.getElementById("nextFeed").innerHTML =
+        data.nextFeed;
+}
 
 });
 
